@@ -11,7 +11,7 @@ export default function Quiz() {
 
     const [activeQuizIndex, setActiveQuizIndex] = useState(0) // hangi sınacın faal olduğunu index ile takip edeceğiz 
     const [userAnswer, setUserAnswer] = useState([]);
-    const activeQuiz = quizzes[activeQuizIndex]
+    const activeQuiz = quizzes[activeQuizIndex] || []
     const activeQuestionIndex = userAnswer.length;
 
     const quizIsComplete = activeQuestionIndex === activeQuiz.length;
@@ -26,6 +26,10 @@ export default function Quiz() {
         setUserAnswer([])
     }
 
+    function handleResetAllQuiz(){
+        setActiveQuizIndex(0)
+        setUserAnswer([])
+    }
     function handleNextQuiz() {
         setActiveQuizIndex(prevIndex => prevIndex + 1)
         setUserAnswer([])
@@ -40,6 +44,12 @@ export default function Quiz() {
                 {
                     activeQuizIndex < quizzes.length - 1 && (
                         <button onClick={handleNextQuiz}>Next Quiz</button>
+                    )
+                }
+
+                {
+                    activeQuizIndex > 0 && (
+                        <button onClick={handleResetAllQuiz}>Reset All Quiz</button>
                     )
                 }
             </div>
