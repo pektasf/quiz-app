@@ -1,38 +1,61 @@
-import { useState, useCallback } from "react"
-import FIRSTQUIZ from '../firstQuiz.js'
-import SECONDQUIZ from '../secondQuiz.js'
-import THIRDQUIZ from '../thirdQuiz.js'
-import quizComplete from '../assets/quiz-complete.png'
-import QuestionTimer from "./QuestionTimer.jsx";
+import { useState, useCallback } from "react";
+import FIRSTQUIZ from '../firstQuiz.js';
+import SECONDQUIZ from '../secondQuiz.js';
+import THIRDQUIZ from '../thirdQuiz.js';
+import quizComplete from '../assets/quiz-complete.png';
+import Question from "./Question.jsx";
 
-const quizzes = [FIRSTQUIZ, SECONDQUIZ, THIRDQUIZ]
+const quizzes = [FIRSTQUIZ, SECONDQUIZ, THIRDQUIZ];
 
 export default function Quiz() {
-
-    const [activeQuizIndex, setActiveQuizIndex] = useState(0) // hangi sınacın faal olduğunu index ile takip edeceğiz 
+    const [answerState, setAnswerState] = useState('');
+    const [activeQuizIndex, setActiveQuizIndex] = useState(0);
     const [userAnswer, setUserAnswer] = useState([]);
-    const activeQuiz = quizzes[activeQuizIndex] || []
+    const [selectedAnswer, setSelectedAnswer] = useState(null);
+    const activeQuiz = quizzes[activeQuizIndex] || [];
     const activeQuestionIndex = userAnswer.length;
 
     const quizIsComplete = activeQuestionIndex === activeQuiz.length;
 
     const handleSelectedAnswer = useCallback((chosenAnswer) => {
-        setUserAnswer((prevAnswers) => [...prevAnswers, chosenAnswer]);
-    }, [])
+        setSelectedAnswer(chosenAnswer);
+        setAnswerState('answered');
+
+        setTimeout(() => {
+            if (chosenAnswer === activeQuiz[activeQuestionIndex].answers[0]) {
+                setAnswerState('correct');
+            } else {
+                setAnswerState('wrong');
+            }
+
+            setTimeout(() => {
+                setUserAnswer((prevAnswers) => [...prevAnswers, chosenAnswer]);
+                setSelectedAnswer(null);
+                setAnswerState('');
+            }, 1000);
+        }, 1000);
+    }, [activeQuestionIndex, activeQuiz]);
 
     const handleSkipAnswer = useCallback(() => handleSelectedAnswer(null), []);
 
     function handleResetQuiz() {
-        setUserAnswer([])
+        setUserAnswer([]);
+        setSelectedAnswer(null);
+        setAnswerState('');
     }
 
-    function handleResetAllQuiz(){
-        setActiveQuizIndex(0)
-        setUserAnswer([])
+    function handleResetAllQuiz() {
+        setActiveQuizIndex(0);
+        setUserAnswer([]);
+        setSelectedAnswer(null);
+        setAnswerState('');
     }
+
     function handleNextQuiz() {
-        setActiveQuizIndex(prevIndex => prevIndex + 1)
-        setUserAnswer([])
+        setActiveQuizIndex(prevIndex => prevIndex + 1);
+        setUserAnswer([]);
+        setSelectedAnswer(null);
+        setAnswerState('');
     }
 
     if (quizIsComplete) {
@@ -46,35 +69,26 @@ export default function Quiz() {
                         <button onClick={handleNextQuiz}>Next Quiz</button>
                     )
                 }
-
                 {
                     activeQuizIndex > 0 && (
                         <button onClick={handleResetAllQuiz}>Reset All Quiz</button>
                     )
                 }
             </div>
-        )
+        );
     }
-    const shuffledAnswers = [...activeQuiz[activeQuestionIndex].answers]
-    shuffledAnswers.sort(() => Math.random() - 0.5)
 
     return (
         <div id="quiz">
-            <div id="question">
-                <QuestionTimer timeout={10000} />
-                <h2>
-                    {activeQuiz[activeQuestionIndex].text}
-                </h2>
-                <ul id="answers">
-                    {shuffledAnswers.map((answer) => (
-                        <li key={answer} className="answer">
-                            <button onClick={() => handleSelectedAnswer(answer)}>
-                                {answer}
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            </div>
+            <Question
+                key={activeQuestionIndex}
+                questionText={activeQuiz[activeQuestionIndex].text}
+                answers={activeQuiz[activeQuestionIndex].answers}
+                answerState={answerState}
+                selectedanswer={selectedAnswer}
+                onSelectAnswer={handleSelectedAnswer}
+                onSkipAnswer={handleSkipAnswer}
+            />
         </div>
-    )
+    );
 }
